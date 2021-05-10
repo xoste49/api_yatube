@@ -1,10 +1,10 @@
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-
-from .models import Post, Comment
-from .serializers import UserSerializer, PostSerializer, CommentSerializer
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.response import Response
+
+from .models import Comment, Post
+from .serializers import CommentSerializer, PostSerializer, UserSerializer
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -65,8 +65,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        queryset = post.comments.all()
-        return queryset
+        return post.comments.all()
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
