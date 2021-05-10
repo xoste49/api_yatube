@@ -5,7 +5,6 @@ from .models import Post, Comment
 from .serializers import UserSerializer, PostSerializer, CommentSerializer
 from rest_framework import viewsets, status, request
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -29,7 +28,6 @@ class PostViewSet(viewsets.ModelViewSet):
     # api/v1/posts/{post_id}/ (GET, PUT(PATCH), DELETE)
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -56,7 +54,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     # api/v1/posts/{post_id}/comments/{comment_id}/ (GET, PUT(PATCH), DELETE): получаем, редактируем или удаляем комментарий по id
     # api/v1/posts/{post_id}/comments/ (GET, POST): получаем список всех комментариев или создаём новый, передав id поста, который хотим прокомментировать
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
