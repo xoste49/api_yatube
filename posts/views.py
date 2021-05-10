@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 
 from .models import Post, Comment
 from .serializers import UserSerializer, PostSerializer, CommentSerializer
-from rest_framework import viewsets, status, request
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 
@@ -21,8 +21,13 @@ class UserViewSet(viewsets.ViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    # api/v1/posts/ (GET, POST)
-    # api/v1/posts/{post_id}/ (GET, PUT(PATCH), DELETE)
+    """
+    api/v1/posts/ (GET, POST):
+    получаем список всех постов или создаём новый пост
+
+    api/v1/posts/{post_id}/ (GET, PUT(PATCH), DELETE):
+    получаем, редактируем или удаляем пост по id
+    """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
@@ -48,8 +53,14 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    # api/v1/posts/{post_id}/comments/{comment_id}/ (GET, PUT(PATCH), DELETE): получаем, редактируем или удаляем комментарий по id
-    # api/v1/posts/{post_id}/comments/ (GET, POST): получаем список всех комментариев или создаём новый, передав id поста, который хотим прокомментировать
+    """
+    api/v1/posts/{post_id}/comments/{comment_id}/ (GET, PUT(PATCH), DELETE):
+    получаем, редактируем или удаляем комментарий по id
+
+    api/v1/posts/{post_id}/comments/ (GET, POST): получаем список
+    всех комментариев или создаём новый,
+    передав id поста, который хотим прокомментировать
+    """
     serializer_class = CommentSerializer
 
     def get_queryset(self):
@@ -63,7 +74,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, post_id, pk=None):
         comment = get_object_or_404(self.get_queryset(), pk=pk)
-        serializer = CommentSerializer(comment, data=request.data, partial=True)
+        serializer = CommentSerializer(
+            comment, data=request.data, partial=True
+        )
         if serializer.is_valid() and comment.author == self.request.user:
             serializer.save(author=self.request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
