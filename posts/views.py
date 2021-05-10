@@ -8,15 +8,12 @@ from rest_framework.response import Response
 
 
 class UserViewSet(viewsets.ViewSet):
-    """
-    A simple ViewSet for listing or retrieving users.
-    """
-    def list(self, request):
+    def list(self):
         queryset = User.objects.all()
         serializer = UserSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None):
+    def retrieve(self, pk=None):
         queryset = User.objects.all()
         user = get_object_or_404(queryset, pk=pk)
         serializer = UserSerializer(user)
@@ -56,25 +53,25 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
     def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
         queryset = post.comments.all()
         return queryset
 
     def perform_create(self, serializer):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
         serializer.save(author=self.request.user, post=post)
 
-    def partial_update(self, request, pk=None):
-        comment = get_object_or_404(Comment, pk=pk)
+    def partial_update(self, request, post_id, pk=None):
+        comment = get_object_or_404(self.get_queryset(), pk=pk)
         serializer = CommentSerializer(comment, data=request.data, partial=True)
         if serializer.is_valid() and comment.author == self.request.user:
             serializer.save(author=self.request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
 
-    def destroy(self, request, pk=None):
+    def destroy(self, request, post_id, pk=None):
         comment = get_object_or_404(Comment, pk=pk)
         if comment.author != self.request.user:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        comment.delete()
+        self.perform_destroy(comment)
         return Response(status=status.HTTP_204_NO_CONTENT)
