@@ -12,14 +12,14 @@ api/v1/posts/{post_id}/comments/ (GET, POST): получаем список вс
 """
 
 router = DefaultRouter()
-router.register('api/v1/users', UserViewSet, basename='users')
+router.register('users', UserViewSet, basename='users')
 router.register(
-    r'api/v1/posts/(?P<post_id>\d+)/comments',
+    r'posts/(?P<post_id>\d+)/comments',
     CommentViewSet, basename='comments'
 )
-router.register('api/v1/posts', PostViewSet, basename='posts')
+router.register('posts', PostViewSet, basename='posts')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/v1/', include(router.urls)),
     path('api/v1/api-token-auth/', views.obtain_auth_token),
 ]
