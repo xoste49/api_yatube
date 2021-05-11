@@ -2,5 +2,6 @@ pytest-django
 requests
 pillow
 sorl-thumbnail
-django
+django==2.2.6
 djangorestframework
+django-cors-headers
