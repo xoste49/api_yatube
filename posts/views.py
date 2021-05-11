@@ -38,21 +38,6 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def partial_update(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
-        self.check_object_permissions(request, post)
-        serializer = PostSerializer(post, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def destroy(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
-        self.check_object_permissions(request, post)
-        post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
@@ -73,20 +58,3 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
         serializer.save(author=self.request.user, post=post)
-
-    def partial_update(self, request, post_id, pk=None):
-        comment = get_object_or_404(self.get_queryset(), pk=pk)
-        self.check_object_permissions(request, comment)
-        serializer = CommentSerializer(
-            comment, data=request.data, partial=True
-        )
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
-
-    def destroy(self, request, post_id, pk=None):
-        comment = get_object_or_404(Comment, pk=pk)
-        self.check_object_permissions(request, comment)
-        self.perform_destroy(comment)
-        return Response(status=status.HTTP_204_NO_CONTENT)
