@@ -4,10 +4,13 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from .models import Comment, Post
+from .permission import IsAuthorOrReadOnly
 from .serializers import CommentSerializer, PostSerializer, UserSerializer
 
 
 class UserViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthorOrReadOnly]
+
     def list(self):
         queryset = User.objects.all()
         serializer = UserSerializer(queryset, many=True)
@@ -30,24 +33,23 @@ class PostViewSet(viewsets.ModelViewSet):
     """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = [IsAuthorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def partial_update(self, request, pk=None):
         post = get_object_or_404(Post, pk=pk)
-        if post.author != self.request.user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+        self.check_object_permissions(request, post)
         serializer = PostSerializer(post, data=request.data, partial=True)
-        if serializer.is_valid() and post.author == self.request.user:
+        if serializer.is_valid():
             serializer.save(author=self.request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk=None):
         post = get_object_or_404(Post, pk=pk)
-        if post.author != self.request.user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+        self.check_object_permissions(request, post)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -62,6 +64,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     передав id поста, который хотим прокомментировать
     """
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthorOrReadOnly]
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
@@ -73,17 +76,17 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, post_id, pk=None):
         comment = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(request, comment)
         serializer = CommentSerializer(
             comment, data=request.data, partial=True
         )
-        if serializer.is_valid() and comment.author == self.request.user:
+        if serializer.is_valid():
             serializer.save(author=self.request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
 
     def destroy(self, request, post_id, pk=None):
         comment = get_object_or_404(Comment, pk=pk)
-        if comment.author != self.request.user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+        self.check_object_permissions(request, comment)
         self.perform_destroy(comment)
         return Response(status=status.HTTP_204_NO_CONTENT)
