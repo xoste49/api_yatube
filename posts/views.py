@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 
 from .models import Post
-from .permission import IsAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly
 from .serializers import CommentSerializer, PostSerializer, UserSerializer
 
 
